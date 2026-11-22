@@ -1,5 +1,7 @@
 # raglite
 
+[![tests](https://github.com/busnis887-design/raglite/actions/workflows/tests.yml/badge.svg)](https://github.com/busnis887-design/raglite/actions/workflows/tests.yml) ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue) [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 A small, testable **Retrieval-Augmented Generation (RAG)** pipeline in Python. It keeps the whole `ingest → embed → retrieve → generate` loop transparent and runs offline with zero third-party dependencies, while exposing plug-in points for real embedding and chat models.
 
 ## Why this exists
