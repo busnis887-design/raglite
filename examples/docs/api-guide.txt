@@ -1,0 +1,6 @@
+API Guide
+
+The inference API exposes two endpoints: /v1/ask and /v1/embeddings.
+All requests require an API key in the Authorization header.
+Rate limiting is enforced per key at 60 requests per minute.
+Timeouts are set to 30 seconds and failed calls follow an exponential backoff retry policy with three attempts.

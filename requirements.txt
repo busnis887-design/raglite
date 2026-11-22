@@ -1,0 +1,3 @@
+# No third-party dependencies required for the default offline pipeline.
+# Optional: install openai if you want to use the hosted backend via OpenAIEmbedder/OpenAILLM.
+# openai>=1.0

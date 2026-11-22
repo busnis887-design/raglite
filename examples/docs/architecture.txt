@@ -1,0 +1,6 @@
+System Architecture
+
+The retrieval service is a Python FastAPI application deployed as a container.
+Documents are chunked with 400 characters and 80 characters of overlap.
+Embeddings are stored in a vector index and searched with cosine similarity.
+The answer generator is grounded in retrieved context to reduce hallucination.
