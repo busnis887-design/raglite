@@ -12,8 +12,10 @@ Most RAG tutorials hide the important parts behind a framework. `raglite` makes 
 | --- | --- | --- |
 | Chunking | sentence-aware, overlapping | any `list[Chunk]` producer |
 | Embeddings | deterministic hashing embedder | `OpenAIEmbedder` / your own |
-| Storage | in-memory cosine search | FAISS, Qdrant, pgvector |
+| Storage | in-memory cosine search + JSON persistence | FAISS, Qdrant, pgvector |
+| Retrieval | dense cosine **or hybrid** (dense + BM25-like lexical) | custom scoring function |
 | Generation | grounded extractive answers | `OpenAILLM` / your own |
+| Evaluation | recall@k + MRR on labelled questions | your own metrics |
 
 ## Quickstart
 
@@ -64,6 +66,28 @@ flowchart LR
     E2 --> V
     V --> G[Generator<br/>grounded prompt]
     G --> A[Answer + sources]
+```
+
+## v0.2 highlights
+
+```bash
+# hybrid retrieval (dense + lexical, weighted by alpha)
+python -m raglite.cli ask "retry policy" --hybrid --alpha 0.6
+
+# persist / restore an index
+python -m raglite.cli ingest ./docs --save index.json
+python -m raglite.cli ask "..." --load index.json
+
+# measure retrieval quality with labelled questions
+python -m raglite.cli eval examples/labels.json --docs examples/docs --hybrid
+# recall@3=1.000 MRR=0.833 cases=3
+```
+
+```python
+from raglite import EvalCase, evaluate
+
+result = evaluate(pipeline, [EvalCase("retry policy?", "api-guide.txt")], hybrid=True)
+print(result.recall_at_k, result.mean_reciprocal_rank)
 ```
 
 ## Design decisions

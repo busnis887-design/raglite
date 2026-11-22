@@ -1,13 +1,20 @@
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
 from raglite import (
     Chunk,
+    EvalCase,
     ExtractiveLLM,
     HashingEmbedder,
     RAGPipeline,
     VectorStore,
+    __version__,
     chunk_text,
     cosine,
+    evaluate,
+    lexical_score,
 )
 from raglite.llm import NO_CONTEXT
 
@@ -95,6 +102,49 @@ class PipelineTests(unittest.TestCase):
             )()
         ]
         self.assertIn("orchards", llm.generate("Where are apples grown?", contexts))
+
+
+class V02Tests(unittest.TestCase):
+    def test_version(self):
+        self.assertEqual(__version__, "0.2.0")
+
+    def test_lexical_score(self):
+        self.assertGreater(lexical_score("retry policy", "the retry policy uses backoff"), 0)
+        self.assertEqual(lexical_score("retry", "unrelated words here"), 0.0)
+
+    def test_hybrid_search(self):
+        pipeline = RAGPipeline()
+        pipeline.ingest_text(
+            "The retry policy uses exponential backoff with three attempts.",
+            source="api.txt",
+        )
+        answer = pipeline.ask("retry policy", hybrid=True, alpha=0.5)
+        self.assertEqual(answer.sources, ["api.txt"])
+        self.assertGreaterEqual(answer.contexts[0].lexical_score, 0)
+
+    def test_persistence_roundtrip(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "index.json"
+            first = RAGPipeline()
+            first.ingest_text("Dense vectors and embeddings are stored here.", "doc.txt")
+            first.save(path)
+            second = RAGPipeline()
+            self.assertEqual(second.load(path), len(first.store))
+            self.assertEqual(
+                second.ask("embeddings stored").sources,
+                first.ask("embeddings stored").sources,
+            )
+
+    def test_evaluate(self):
+        pipeline = RAGPipeline()
+        docs = Path(__file__).resolve().parent.parent / "examples" / "docs"
+        pipeline.ingest_files(docs)
+        labels = json.loads((docs.parent / "labels.json").read_text(encoding="utf-8"))
+        cases = [EvalCase(**row) for row in labels]
+        result = evaluate(pipeline, cases, top_k=2, hybrid=True)
+        self.assertEqual(result.cases, 3)
+        self.assertGreater(result.recall_at_k, 0)
+        self.assertGreater(result.mean_reciprocal_rank, 0)
 
 
 if __name__ == "__main__":

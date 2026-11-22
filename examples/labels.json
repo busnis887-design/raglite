@@ -1,0 +1,5 @@
+[
+  {"question": "How does the retry policy work?", "expected_source": "api-guide.txt"},
+  {"question": "Where are embeddings stored?", "expected_source": "architecture.txt"},
+  {"question": "Which header is required for authentication?", "expected_source": "api-guide.txt"}
+]

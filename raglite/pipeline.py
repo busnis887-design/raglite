@@ -50,13 +50,29 @@ class RAGPipeline:
             )
         return total
 
-    def ask(self, question: str, top_k: int = 3) -> Answer:
+    def ask(
+        self,
+        question: str,
+        top_k: int = 3,
+        hybrid: bool = False,
+        alpha: float = 0.5,
+    ) -> Answer:
         question = question.strip()
         if not question:
             raise ValueError("question must not be empty")
-        contexts = self.store.search(question, top_k=top_k)
+        contexts = self.store.search(
+            question, top_k=top_k, hybrid=hybrid, alpha=alpha
+        )
         return Answer(
             question=question,
             answer=self.llm.generate(question, contexts),
             contexts=contexts,
         )
+
+    def save(self, path: str | Path) -> None:
+        """Persist chunks and embeddings to a JSON file."""
+        self.store.save(path)
+
+    def load(self, path: str | Path) -> int:
+        """Restore a previously saved index; returns the number of vectors."""
+        return self.store.load(path)
